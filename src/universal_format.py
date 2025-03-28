@@ -134,11 +134,23 @@ class UniversalFormat:
         :return:
         """
         # Convert to hexadecimal string
-        hex_string = hex(self.value)[2:]
+        hex_string = hex(self.value)
+
+        # Remove '0x' and '-0x' prefixes
+        if hex_string.startswith("-0x"):
+            hex_string = hex_string[3:]
+        elif hex_string.startswith("0x"):
+            hex_string = hex_string[2:]
+
+        pad_val = '0' if self.value >= 0 else 'F'
+
+        # Pad to minimum nibbles
+        if self.min_bits is not None and self.min_bits > len(hex_string) * 4:
+            num_pad = self.min_bits // 4 - len(hex_string)
+            hex_string = pad_val * num_pad + hex_string
 
         # Pad the string if desired
         if pad:
-            pad_val = '0' if self.value >= 0 else 'F'
             num_pad = np.min(pad_nibble_values[pad_nibble_values >= len(hex_string)]) - len(hex_string)
             hex_string = pad_val * num_pad + hex_string
 
