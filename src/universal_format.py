@@ -5,7 +5,7 @@ Universal base class for number formats
 import numpy as np
 
 # Define the padding values for hexadecimal representation
-pad_nibble_values = np.array([1, 2, 4, 8, 16])
+pad_nibble_values = np.array([2, 4, 8, 16])
 
 # Define the padding values for binary representation
 pad_bit_values = np.array([8, 16, 32, 64, 128])
