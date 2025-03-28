@@ -5,7 +5,9 @@ Python GUI for the project
 import tkinter as tk
 from tkinter import messagebox
 
-from src.universal_format import UniversalFormat
+from universal_format import UniversalFormat
+
+version = "0.0"
 
 def remove_trailing_newlines():
     """
@@ -101,7 +103,7 @@ def binary_to_other():
     remove_trailing_newlines()
 
 root = tk.Tk()
-root.title("Number Base Converter")
+root.title(f"Hex2Dec Converter - {version}")
 
 frame = tk.Frame(root)
 frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
