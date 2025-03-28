@@ -9,118 +9,51 @@ from tkinter import messagebox
 import numpy as np
 import struct
 
-pad_bit_values = np.array([8, 16, 32, 64, 128])
-pad_nibble_values = np.array([1, 2, 4, 8, 16])
+from formats.hexadecimal import Hexadecimal
+from formats.decimal import Decimal
+from formats.binary import Binary
 
 def hex_to_other():
     try:
-        hex_values = hex_text.get("1.0", tk.END).strip().splitlines()
+        hex_strings = hex_text.get("1.0", tk.END).strip().splitlines()
         decimal_text.delete("1.0", tk.END)
         binary_text.delete("1.0", tk.END)
-        for hex_value in hex_values:
+        for hex_string in hex_strings:
             try:
-                # Conversion
-                if number_type_var.get() == "unsigned":
-                    decimal_value = int(hex_value, 16)
-                    binary_value = bin(decimal_value)[2:]
-                elif number_type_var.get() == "signed":
-                    decimal_value = int(hex_value, 16)
-                    if decimal_value >= 2**(4 * len(hex_value) - 1):
-                        decimal_value -= 2**(4 * len(hex_value))
-                    binary_value = bin(decimal_value)[2:]
-                    if decimal_value < 0:
-                        binary_value = binary_value[1:]
-                elif number_type_var.get() == "floating":
-                    # Convert to float
-                    decimal_value = struct.unpack('!f', bytes.fromhex(hex_value))[0]
-                    # Convert to binary string
-                    binary_value = bin(struct.unpack('!I', struct.pack('!f', decimal_value))[0])[2:]
-
-                # Padding
-                if pad_var.get():
-                    binary_value = binary_value.zfill(np.min(pad_bit_values[pad_bit_values >= len(binary_value)]))
-
+                hex = Hexadecimal(hex_string, number_type_var.get())
                 # Add to textboxes
-                decimal_text.insert(tk.END, str(decimal_value) + "\n")
-                binary_text.insert(tk.END, binary_value + "\n")
+                decimal_text.insert(tk.END, Decimal(hex.value).to_string() + "\n")
+                binary_text.insert(tk.END, Binary(hex.value).to_string(pad_var.get()) + "\n")
             except ValueError:
-                messagebox.showerror("Conversion Error", f"Invalid Hexadecimal Value: {hex_value}")
+                messagebox.showerror("Conversion Error", f"Invalid Hexadecimal Value: {hex_string}")
     except ValueError:
         messagebox.showerror("Conversion Error", "Invalid Hexadecimal Value")
 
 def decimal_to_other():
-    try:
-        decimal_values = decimal_text.get("1.0", tk.END).strip().splitlines()
-        hex_text.delete("1.0", tk.END)
-        binary_text.delete("1.0", tk.END)
-        for decimal_value in decimal_values:
-            try:
-                # Conversion
-                if number_type_var.get() == "unsigned":
-                    decimal_value = int(decimal_value)
-                    hex_value = hex(decimal_value)[2:].upper()
-                    binary_value = bin(decimal_value)[2:]
-                elif number_type_var.get() == "signed":
-                    decimal_value = int(decimal_value)
-                    hex_value = hex(decimal_value)[2:].upper()
-                    binary_value = bin(decimal_value)[2:]
-                    if decimal_value < 0:
-                        binary_value = binary_value[1:]
-                elif number_type_var.get() == "floating":
-                    decimal_value = float(decimal_value)
-                    hex_value = hex(struct.unpack('<I', struct.pack('<f', decimal_value))[0])[2:].upper()
-                    binary_value = bin(struct.unpack('<I', struct.pack('<f', decimal_value))[0])[2:]
-
-                # Padding
-                if pad_var.get():
-                    hex_value = hex_value.zfill(np.min(pad_nibble_values[pad_nibble_values >= len(hex_value)]))
-                if pad_var.get():
-                    binary_value = binary_value.zfill(np.min(pad_bit_values[pad_bit_values >= len(binary_value)]))
-
-                # Add to textboxes
-                hex_text.insert(tk.END, hex_value + "\n")
-                binary_text.insert(tk.END, binary_value + "\n")
-            except ValueError:
-                messagebox.showerror("Conversion Error", f"Invalid Decimal Value: {decimal_value}")
-    except ValueError:
-        messagebox.showerror("Conversion Error", "Invalid Decimal Value")
+    decimal_strings = decimal_text.get("1.0", tk.END).strip().splitlines()
+    hex_text.delete("1.0", tk.END)
+    binary_text.delete("1.0", tk.END)
+    for decimal_string in decimal_strings:
+        try:
+            decimal = Decimal(decimal_string, number_type_var.get())
+            # Add to textboxes
+            hex_text.insert(tk.END, Hexadecimal(decimal.value).to_string(pad_var.get()) + "\n")
+            binary_text.insert(tk.END, Binary(decimal.value).to_string(pad_var.get()) + "\n")
+        except ValueError:
+            messagebox.showerror("Conversion Error", f"Invalid Decimal Value: {decimal_string}")
 
 def binary_to_other():
-    try:
-        binary_values = binary_text.get("1.0", tk.END).strip().splitlines()
-        decimal_text.delete("1.0", tk.END)
-        hex_text.delete("1.0", tk.END)
-        for binary_value in binary_values:
-            try:
-                # Conversion
-                if number_type_var.get() == "unsigned":
-                    decimal_value = int(binary_value, 2)
-                    hex_value = hex(decimal_value)[2:].upper()
-                elif number_type_var.get() == "signed":
-                    decimal_value = int(binary_value, 2)
-                    if binary_value[0] == "1":
-                        decimal_value -= 2 ** len(binary_value)
-                    hex_value = hex(decimal_value)[2:].upper()
-                elif number_type_var.get() == "floating":
-                    # Convert to hex string
-                    hex_value = hex(int(binary_value, 2))[2:].upper()
-                    # Padding
-                    if pad_var.get():
-                        hex_value = hex_value.zfill(np.min(pad_nibble_values[pad_nibble_values >= len(hex_value)]))
-                    # Convert to float
-                    decimal_value = struct.unpack('!f', bytes.fromhex(hex_value))[0]
-
-                # Padding
-                if pad_var.get():
-                    hex_value = hex_value.zfill(np.min(pad_nibble_values[pad_nibble_values >= len(hex_value)]))
-
-                # Add to text boxes
-                decimal_text.insert(tk.END, str(decimal_value) + "\n")
-                hex_text.insert(tk.END, hex_value + "\n")
-            except ValueError:
-                messagebox.showerror("Conversion Error", f"Invalid Binary Value: {binary_value}")
-    except ValueError:
-        messagebox.showerror("Conversion Error", "Invalid Binary Value")
+    binary_strings = binary_text.get("1.0", tk.END).strip().splitlines()
+    hex_text.delete("1.0", tk.END)
+    decimal_text.delete("1.0", tk.END)
+    for binary_string in binary_strings:
+        try:
+            binary = Binary(binary_string, number_type_var.get())
+            # Add to textboxes
+            hex_text.insert(tk.END, Hexadecimal(binary.value).to_string(pad_var.get()) + "\n")
+            decimal_text.insert(tk.END, Decimal(binary.value).to_string() + "\n")
+        except ValueError:
+            messagebox.showerror("Conversion Error", f"Invalid Binary Value: {binary_string}")
 
 root = tk.Tk()
 root.title("Number Base Converter")
