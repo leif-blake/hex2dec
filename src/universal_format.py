@@ -3,12 +3,16 @@ Universal base class for number formats
 """
 
 import numpy as np
+import struct
 
 # Define the padding values for hexadecimal representation
 pad_nibble_values = np.array([2, 4, 8, 16])
 
 # Define the padding values for binary representation
 pad_bit_values = np.array([8, 16, 32, 64, 128])
+
+# Allowed bit values for floating point
+float_bit_values = np.array([32])
 
 class UniversalFormat:
     """
@@ -45,7 +49,7 @@ class UniversalFormat:
 
         self.min_bits = len(hex_string) * 4
 
-        # Handle signed and unsigned types
+        # Convert to underlying value
         if self.value_type == "unsigned":
             # Convert to unsigned integer
             self.value = int(hex_string, 16)
@@ -55,8 +59,10 @@ class UniversalFormat:
             if self.value >= 2 ** (4 * len(hex_string) - 1):
                 self.value -= 2 ** (4 * len(hex_string))
         elif self.value_type == "floating":
+            if len(hex_string) * 4 not in float_bit_values:
+                raise ValueError("Unsupported length for floating point value")
             # Convert to floating point number
-            self.value = float.fromhex(hex(int(hex_string, 16)))
+            self.value = struct.unpack('!f', bytes.fromhex(hex_string))[0]
 
         return self.value
 
@@ -109,7 +115,9 @@ class UniversalFormat:
                 self.value -= 2 ** len(bin_string)
         elif self.value_type == "floating":
             # Convert to floating point number
-            self.value = float.fromhex(hex(int(bin_string, 2)))
+            if len(bin_string) not in float_bit_values:
+                raise ValueError("Unsupported length for floating point value")
+            self.value = struct.unpack('!f', int(bin_string, 2).to_bytes(4, byteorder='big'))[0]
 
         return self.value
 
@@ -133,7 +141,7 @@ class UniversalFormat:
                 min_bits_signed = np.min(pad_bit_values[pad_bit_values >= np.log2(np.abs(self.value) * 2)])
                 hex_string = hex(2**min_bits_signed + self.value)
         elif self.value_type == "floating":
-            hex_string = hex(int(self.value))
+            hex_string = hex(struct.unpack('<I', struct.pack('<f', self.value))[0])[2:]
 
         # Remove '0x' and '-0x' prefixes
         if hex_string.startswith("-0x"):
@@ -188,7 +196,11 @@ class UniversalFormat:
                 min_bits_signed = np.min(pad_bit_values[pad_bit_values >= np.log2(np.abs(self.value) * 2)])
                 bin_string = bin(2**min_bits_signed + self.value)
         elif self.value_type == "floating":
-            bin_string = bin(int(self.value))
+            bin_string = bin(struct.unpack('!I', struct.pack('!f', self.value))[0])[2:]
+            # Pad to nearest value in float_bit_values
+            if len(bin_string) < np.max(float_bit_values):
+                pad_num = np.min(float_bit_values[float_bit_values >= len(bin_string)]) - len(bin_string)
+                bin_string = '0' * pad_num + bin_string
 
         # Remove '0b' and '-0b' prefixes
         if bin_string.startswith("-0b"):

@@ -26,24 +26,22 @@ def remove_trailing_newlines():
     binary_text.insert(tk.END, binary_string)
 
 def hex_to_other():
-    try:
-        hex_strings = hex_text.get("1.0", tk.END).strip().splitlines()
-        decimal_text.delete("1.0", tk.END)
-        binary_text.delete("1.0", tk.END)
-        value = UniversalFormat()
-        value.set_type(number_type_var.get())
-        for hex_string in hex_strings:
-            try:
-                # Parse value
-                value.from_hex_string(hex_string)
+    hex_strings = hex_text.get("1.0", tk.END).strip().splitlines()
+    decimal_text.delete("1.0", tk.END)
+    binary_text.delete("1.0", tk.END)
+    value = UniversalFormat()
+    value.set_type(number_type_var.get())
+    for hex_string in hex_strings:
+        try:
+            # Parse value
+            value.from_hex_string(hex_string)
 
-                # Convert and add to textboxes
-                decimal_text.insert(tk.END, value.to_dec_string() + "\n")
-                binary_text.insert(tk.END, value.to_bin_string(pad_var.get(), show_prefix_var.get()) + "\n")
-            except ValueError:
-                messagebox.showerror("Conversion Error", f"Invalid Hexadecimal Value: {hex_string}")
-    except ValueError:
-        messagebox.showerror("Conversion Error", "Invalid Hexadecimal Value")
+            # Convert and add to textboxes
+            decimal_text.insert(tk.END, value.to_dec_string() + "\n")
+            binary_text.insert(tk.END, value.to_bin_string(pad_var.get(), show_prefix_var.get()) + "\n")
+        except ValueError as error:
+            messagebox.showerror("Conversion Error", f"Invalid Hexadecimal Value: {hex_string}\n"
+                                                     f"{error}")
     remove_trailing_newlines()
 
 def decimal_to_other():
@@ -68,8 +66,9 @@ def decimal_to_other():
             # Convert and add to textboxes
             hex_text.insert(tk.END, value.to_hex_string(pad_var.get(), show_prefix_var.get()) + "\n")
             binary_text.insert(tk.END, value.to_bin_string(pad_var.get(), show_prefix_var.get()) + "\n")
-        except ValueError:
-            messagebox.showerror("Conversion Error", f"Invalid Decimal Value: {decimal_string}")
+        except ValueError as error:
+            messagebox.showerror("Conversion Error", f"Invalid Decimal Value: {decimal_string}\n"
+                                                     f"{error}")
     # Replace decimal strings in the text box with formatted decimal strings
     decimal_text.delete("1.0", tk.END)
     decimal_text.insert(tk.END, "\n".join(formatted_decimal_strings) + "\n")
@@ -89,8 +88,9 @@ def binary_to_other():
             # Convert and add to textboxes
             hex_text.insert(tk.END, value.to_hex_string(pad_var.get(), show_prefix_var.get()) + "\n")
             decimal_text.insert(tk.END, value.to_dec_string() + "\n")
-        except ValueError:
-            messagebox.showerror("Conversion Error", f"Invalid Binary Value: {binary_string}")
+        except ValueError as error:
+            messagebox.showerror("Conversion Error", f"Invalid Binary Value: {binary_string}\n"
+                                                     f"{error}")
     remove_trailing_newlines()
 
 root = tk.Tk()
