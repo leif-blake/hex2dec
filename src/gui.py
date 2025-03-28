@@ -1,17 +1,13 @@
 """
 Python GUI for the project
 """
-import tkinter as tk
-from tkinter import messagebox
 
 import tkinter as tk
 from tkinter import messagebox
-import numpy as np
-import struct
 
-from formats.hexadecimal import Hexadecimal
-from formats.decimal import Decimal
-from formats.binary import Binary
+from src.formats.hexadecimal import Hexadecimal
+from src.formats.decimal import Decimal
+from src.formats.binary import Binary
 
 def hex_to_other():
     try:

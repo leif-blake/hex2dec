@@ -2,8 +2,6 @@
 Class file for decimal representation
 """
 
-import numpy as np
-
 class Decimal:
     def __init__(self, value, type="signed"):
         # Define underlying value
