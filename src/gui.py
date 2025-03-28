@@ -29,12 +29,20 @@ def hex_to_other():
 
 def decimal_to_other():
     decimal_strings = decimal_text.get("1.0", tk.END).strip().splitlines()
+    formatted_decimal_strings = []
     hex_text.delete("1.0", tk.END)
     binary_text.delete("1.0", tk.END)
     value = UniversalFormat()
     value.set_type(number_type_var.get())
     for decimal_string in decimal_strings:
         try:
+            # If decimal string contains a decimal point, but type is not floating, convert to integer
+            if '.' in decimal_string and number_type_var.get() != "floating":
+                decimal_string = str(int(float(decimal_string)))
+            if '-' in decimal_string and number_type_var.get() == "unsigned":
+                decimal_string = str(abs(int(decimal_string)))
+            formatted_decimal_strings.append(decimal_string)
+
             # Parse value
             value.from_dec_string(decimal_string)
 
@@ -43,6 +51,9 @@ def decimal_to_other():
             binary_text.insert(tk.END, value.to_bin_string(pad_var.get(), show_prefix_var.get()) + "\n")
         except ValueError:
             messagebox.showerror("Conversion Error", f"Invalid Decimal Value: {decimal_string}")
+    # Replace decimal strings in the text box with formatted decimal strings
+    decimal_text.delete("1.0", tk.END)
+    decimal_text.insert(tk.END, "\n".join(formatted_decimal_strings) + "\n")
 
 def binary_to_other():
     binary_strings = binary_text.get("1.0", tk.END).strip().splitlines()
