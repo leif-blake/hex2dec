@@ -7,6 +7,24 @@ from tkinter import messagebox
 
 from src.universal_format import UniversalFormat
 
+def remove_trailing_newlines():
+    """
+    Remove trailing newlines from the text boxes
+    """
+    hex_string = hex_text.get("1.0", tk.END).strip()
+    decimal_string = decimal_text.get("1.0", tk.END).strip()
+    binary_string = binary_text.get("1.0", tk.END).strip()
+
+    # Remove trailing newlines
+    hex_text.delete("1.0", tk.END)
+    decimal_text.delete("1.0", tk.END)
+    binary_text.delete("1.0", tk.END)
+
+    # Insert the cleaned strings back into the text boxes
+    hex_text.insert(tk.END, hex_string)
+    decimal_text.insert(tk.END, decimal_string)
+    binary_text.insert(tk.END, binary_string)
+
 def hex_to_other():
     try:
         hex_strings = hex_text.get("1.0", tk.END).strip().splitlines()
@@ -26,6 +44,7 @@ def hex_to_other():
                 messagebox.showerror("Conversion Error", f"Invalid Hexadecimal Value: {hex_string}")
     except ValueError:
         messagebox.showerror("Conversion Error", "Invalid Hexadecimal Value")
+    remove_trailing_newlines()
 
 def decimal_to_other():
     decimal_strings = decimal_text.get("1.0", tk.END).strip().splitlines()
@@ -54,6 +73,7 @@ def decimal_to_other():
     # Replace decimal strings in the text box with formatted decimal strings
     decimal_text.delete("1.0", tk.END)
     decimal_text.insert(tk.END, "\n".join(formatted_decimal_strings) + "\n")
+    remove_trailing_newlines()
 
 def binary_to_other():
     binary_strings = binary_text.get("1.0", tk.END).strip().splitlines()
@@ -71,6 +91,7 @@ def binary_to_other():
             decimal_text.insert(tk.END, value.to_dec_string() + "\n")
         except ValueError:
             messagebox.showerror("Conversion Error", f"Invalid Binary Value: {binary_string}")
+    remove_trailing_newlines()
 
 root = tk.Tk()
 root.title("Number Base Converter")
