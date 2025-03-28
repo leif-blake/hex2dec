@@ -26,6 +26,7 @@ class UniversalFormat:
         self.value = None
         self.value_type = None
         self.min_bits = None
+        self.endianness = 'big'
 
     def set_type(self, type):
         """
@@ -33,6 +34,15 @@ class UniversalFormat:
         :param type: Type of number (signed, unsigned, floating)
         """
         self.value_type = type
+
+    def set_endianness(self, endian):
+        """
+        Set the endianness of the number
+        :param endian: Endianness of the number (big, little)
+        """
+        if endian not in ['big', 'little']:
+            raise ValueError("Endianness must be 'big' or 'little'")
+        self.endianness = endian
 
     def from_hex_string(self, hex_string):
         """
@@ -46,6 +56,10 @@ class UniversalFormat:
         # Remove 0x prefix if present
         if hex_string.startswith("0x"):
             hex_string = hex_string[2:]
+
+        # Re-order bytes if endianness is little
+        if self.endianness == 'little':
+            hex_string = ''.join([hex_string[i:i + 2] for i in range(0, len(hex_string), 2)][::-1])
 
         self.min_bits = len(hex_string) * 4
 
@@ -101,6 +115,10 @@ class UniversalFormat:
         # Remove 0b prefix if present
         if bin_string.startswith("0b"):
             bin_string = bin_string[2:]
+
+        # Re-order bytes if endianness is little
+        if self.endianness == 'little':
+            bin_string = ''.join([bin_string[i:i + 8] for i in range(0, len(bin_string), 8)][::-1])
 
         self.min_bits = len(bin_string)
 
@@ -161,6 +179,10 @@ class UniversalFormat:
             num_pad = np.min(pad_nibble_values[pad_nibble_values >= len(hex_string)]) - len(hex_string)
             hex_string = pad_val * num_pad + hex_string
 
+        # Re-order bytes if endianness is little
+        if self.endianness == 'little':
+            hex_string = ''.join([hex_string[i:i + 2] for i in range(0, len(hex_string), 2)][::-1])
+
         # Add 0x prefix if desired
         if show_0x:
             hex_string = "0x" + hex_string
@@ -219,6 +241,10 @@ class UniversalFormat:
         if pad:
             num_pad = np.min(pad_bit_values[pad_bit_values >= len(bin_string)]) - len(bin_string)
             bin_string = pad_val * num_pad + bin_string
+
+        # Re-order bytes if endianness is little
+        if self.endianness == 'little':
+            bin_string = ''.join([bin_string[i:i + 8] for i in range(0, len(bin_string), 8)][::-1])
 
         # Add 0b prefix if desired
         if show_0b:

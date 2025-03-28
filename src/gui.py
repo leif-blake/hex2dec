@@ -27,10 +27,13 @@ def remove_trailing_newlines():
 
 def hex_to_other():
     hex_strings = hex_text.get("1.0", tk.END).strip().splitlines()
+    formatted_hex_strings = []
     decimal_text.delete("1.0", tk.END)
     binary_text.delete("1.0", tk.END)
     value = UniversalFormat()
     value.set_type(number_type_var.get())
+    if little_endian_var.get():
+        value.set_endianness('little')
     for hex_string in hex_strings:
         try:
             # Parse value
@@ -51,6 +54,8 @@ def decimal_to_other():
     binary_text.delete("1.0", tk.END)
     value = UniversalFormat()
     value.set_type(number_type_var.get())
+    if little_endian_var.get():
+        value.set_endianness('little')
     for decimal_string in decimal_strings:
         try:
             # If decimal string contains a decimal point, but type is not floating, convert to integer
@@ -80,6 +85,8 @@ def binary_to_other():
     decimal_text.delete("1.0", tk.END)
     value = UniversalFormat()
     value.set_type(number_type_var.get())
+    if little_endian_var.get():
+        value.set_endianness('little')
     for binary_string in binary_strings:
         try:
             # Parse value
@@ -112,6 +119,11 @@ pad_check.grid(row=0, column=0, pady=5, sticky="nw")
 show_prefix_var = tk.BooleanVar()
 show_prefix_check = tk.Checkbutton(options_frame, text="Show Prefix", variable=show_prefix_var)
 show_prefix_check.grid(row=0, column=1, pady=5, sticky="nw")
+
+# Check box for little endianness
+little_endian_var = tk.BooleanVar()
+little_endian_check = tk.Checkbutton(options_frame, text="Little Endian", variable=little_endian_var)
+little_endian_check.grid(row=0, column=2, pady=5, sticky="nw")
 
 # Radio Group for type of number
 number_type_var = tk.StringVar(value="unsigned")
