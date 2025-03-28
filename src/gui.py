@@ -5,21 +5,23 @@ Python GUI for the project
 import tkinter as tk
 from tkinter import messagebox
 
-from src.formats.hexadecimal import Hexadecimal
-from src.formats.decimal import Decimal
-from src.formats.binary import Binary
+from src.universal_format import UniversalFormat
 
 def hex_to_other():
     try:
         hex_strings = hex_text.get("1.0", tk.END).strip().splitlines()
         decimal_text.delete("1.0", tk.END)
         binary_text.delete("1.0", tk.END)
+        value = UniversalFormat()
+        value.set_type(number_type_var.get())
         for hex_string in hex_strings:
             try:
-                hex = Hexadecimal(hex_string, number_type_var.get())
-                # Add to textboxes
-                decimal_text.insert(tk.END, Decimal(hex.value).to_string() + "\n")
-                binary_text.insert(tk.END, Binary(hex.value).to_string(pad_var.get()) + "\n")
+                # Parse value
+                value.from_hex_string(hex_string)
+
+                # Convert and add to textboxes
+                decimal_text.insert(tk.END, value.to_dec_string() + "\n")
+                binary_text.insert(tk.END, value.to_bin_string(pad_var.get()) + "\n")
             except ValueError:
                 messagebox.showerror("Conversion Error", f"Invalid Hexadecimal Value: {hex_string}")
     except ValueError:
@@ -29,12 +31,16 @@ def decimal_to_other():
     decimal_strings = decimal_text.get("1.0", tk.END).strip().splitlines()
     hex_text.delete("1.0", tk.END)
     binary_text.delete("1.0", tk.END)
+    value = UniversalFormat()
+    value.set_type(number_type_var.get())
     for decimal_string in decimal_strings:
         try:
-            decimal = Decimal(decimal_string, number_type_var.get())
-            # Add to textboxes
-            hex_text.insert(tk.END, Hexadecimal(decimal.value).to_string(pad_var.get()) + "\n")
-            binary_text.insert(tk.END, Binary(decimal.value).to_string(pad_var.get()) + "\n")
+            # Parse value
+            value.from_dec_string(decimal_string)
+
+            # Convert and add to textboxes
+            hex_text.insert(tk.END, value.to_hex_string(pad_var.get()) + "\n")
+            binary_text.insert(tk.END, value.to_bin_string(pad_var.get()) + "\n")
         except ValueError:
             messagebox.showerror("Conversion Error", f"Invalid Decimal Value: {decimal_string}")
 
@@ -42,12 +48,16 @@ def binary_to_other():
     binary_strings = binary_text.get("1.0", tk.END).strip().splitlines()
     hex_text.delete("1.0", tk.END)
     decimal_text.delete("1.0", tk.END)
+    value = UniversalFormat()
+    value.set_type(number_type_var.get())
     for binary_string in binary_strings:
         try:
-            binary = Binary(binary_string, number_type_var.get())
-            # Add to textboxes
-            hex_text.insert(tk.END, Hexadecimal(binary.value).to_string(pad_var.get()) + "\n")
-            decimal_text.insert(tk.END, Decimal(binary.value).to_string() + "\n")
+            # Parse value
+            value.from_bin_string(binary_string)
+
+            # Convert and add to textboxes
+            hex_text.insert(tk.END, value.to_hex_string(pad_var.get()) + "\n")
+            decimal_text.insert(tk.END, value.to_dec_string() + "\n")
         except ValueError:
             messagebox.showerror("Conversion Error", f"Invalid Binary Value: {binary_string}")
 
@@ -89,9 +99,15 @@ binary_text.grid(row=2, column=2, padx=5, pady=5, sticky="nsew")
 binary_button = tk.Button(frame, text="Convert Binary", command=binary_to_other)
 binary_button.grid(row=3, column=2, padx=5, pady=5)
 
-frame.grid_rowconfigure(0, weight=1)
+# Configure column weights
 frame.grid_columnconfigure(0, weight=1)
 frame.grid_columnconfigure(1, weight=1)
 frame.grid_columnconfigure(2, weight=1)
+
+# Configure row weights
+frame.grid_rowconfigure(0, weight=0)
+frame.grid_rowconfigure(1, weight=0)
+frame.grid_rowconfigure(2, weight=1)
+frame.grid_rowconfigure(3, weight=0)
 
 root.mainloop()
