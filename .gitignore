@@ -1,3 +1,11 @@
 # Ignore PyCharm project files
 .idea/
+
+# Ignore python cache files
 *.pyc
+
+# Ignore build files
+dist/
+build/
+*.exe
+*.spec
