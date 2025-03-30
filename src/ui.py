@@ -1,167 +1,193 @@
-import tkinter as tk
-from tkinter import ttk
+import sys
+from PyQt6.QtWidgets import (QApplication, QMainWindow, QPushButton, QVBoxLayout,
+                             QHBoxLayout, QWidget, QLabel, QRadioButton, QCheckBox,
+                             QTextEdit, QGridLayout)
+from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve
 
 import handlers
 
-class Hex2Dec(tk.Tk):
-    def __init__(self, version):
+
+class Hex2DecQt(QMainWindow):
+    def __init__(self, version="1.0"):
         super().__init__()
         self.options_visible = False
-        self.title(f"Hex2Dec Converter - {version}")
-        self.geometry("800x600")
-        self.main_frame = ttk.Frame(self)
-        self.main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        self.setWindowTitle(f"Hex2Dec Converter - {version}")
+        self.resize(800, 600)
 
-        # Declare widget variables
-        self.toggle_button = None
-        self.options_frame = None
-        self.conversion_frame = None
-        self.number_type_var = None
-        self.little_endian_var = None
-        self.show_prefix_var = None
-        self.pad_var = None
+        # Declare UI variables
         self.hex_text = None
         self.dec_text = None
         self.bin_text = None
+        self.pad_check = None
+        self.prefix_check = None
+        self.endian_check = None
+        self.unsigned_radio = None
+        self.signed_radio = None
+        self.float_radio = None
         self.hex_button = None
         self.dec_button = None
         self.bin_button = None
+        self.toggle_button = None
 
-        # Create widgets
-        self.create_widgets()
+        # Main container widget
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
+        self.main_layout = QVBoxLayout(self.central_widget)
+        self.main_layout.setContentsMargins(10, 10, 10, 10)
 
-    def create_widgets(self):
-        self.toggle_button = ttk.Button(self.main_frame, text="Show Options", command=self.toggle_options)
-        self.toggle_button.grid(row=0, column=0, pady=5, sticky="nw")
+        # Toggle button
+        self.toggle_button = QPushButton("Show Options")
+        self.toggle_button.clicked.connect(self.toggle_options)
+        self.main_layout.addWidget(self.toggle_button, alignment=Qt.AlignmentFlag.AlignLeft)
 
-        self.parent_frame = ttk.Frame(self.main_frame)
-        self.parent_frame.grid(row=1, column=0, pady=5, sticky="nsew")
+        # Options frame
+        self.options_frame = QWidget()
+        self.options_frame.setStyleSheet("background-color: #f0f0f0;")
+        self.options_frame_layout = QGridLayout(self.options_frame)
+        self.setup_options_widgets()
 
-        self.create_option_widgets()
-        self.create_conversion_widgets()
+        # Initially set height to 0
+        self.options_frame.setMaximumHeight(0)
+        self.options_frame.setMinimumHeight(0)
+        self.main_layout.addWidget(self.options_frame)
 
-        # Configure column weights
-        self.main_frame.grid_columnconfigure(0, weight=1)
-        self.parent_frame.grid_columnconfigure(0, weight=1)
+        # Animation for options frame
+        self.animation = QPropertyAnimation(self.options_frame, b"maximumHeight")
+        self.animation.setEasingCurve(QEasingCurve.Type.OutCubic)
+        self.animation.setDuration(300)
 
-        # Configure row weights
-        self.main_frame.grid_rowconfigure(0, weight=0)
-        self.main_frame.grid_rowconfigure(1, weight=1)
-        self.parent_frame.grid_rowconfigure(0, weight=0)
-        self.parent_frame.grid_rowconfigure(1, weight=1)
+        # Conversion frame
+        self.conversion_frame = QWidget()
+        self.setup_conversion_widgets()
+        self.main_layout.addWidget(self.conversion_frame)
 
-    def create_option_widgets(self):
-        self.options_frame = ttk.Frame(self.parent_frame)
-        self.options_frame.grid(row=0, column=0, pady=5, sticky="nw")
-        if not self.options_visible:
-            self.options_frame.grid_remove()
+        # Make conversion frame expand to fill space
+        self.main_layout.setStretch(2, 1)
 
-        self.pad_var = tk.BooleanVar()
-        pad_check = ttk.Checkbutton(self.options_frame, text="Enable Padding", variable=self.pad_var, takefocus=False)
-        pad_check.grid(row=0, column=0, padx=5)
+    def setup_options_widgets(self):
+        # Checkboxes
+        self.pad_check = QCheckBox("Enable Padding")
+        self.prefix_check = QCheckBox("Show Prefix")
+        self.endian_check = QCheckBox("Little Endian")
 
-        self.show_prefix_var = tk.BooleanVar()
-        show_prefix_check = ttk.Checkbutton(self.options_frame, text="Show Prefix", variable=self.show_prefix_var, takefocus=False)
-        show_prefix_check.grid(row=0, column=1, padx=5)
+        # Radio buttons
+        self.unsigned_radio = QRadioButton("Unsigned")
+        self.signed_radio = QRadioButton("Signed")
+        self.float_radio = QRadioButton("Floating Point")
+        self.unsigned_radio.setChecked(True)
 
-        self.little_endian_var = tk.BooleanVar()
-        little_endian_check = ttk.Checkbutton(self.options_frame, text="Little Endian", variable=self.little_endian_var, takefocus=False)
-        little_endian_check.grid(row=0, column=2, padx=5)
+        # Add to layout
+        self.options_frame_layout.addWidget(self.pad_check, 0, 0)
+        self.options_frame_layout.addWidget(self.prefix_check, 0, 1)
+        self.options_frame_layout.addWidget(self.endian_check, 0, 2)
+        self.options_frame_layout.addWidget(self.unsigned_radio, 1, 0)
+        self.options_frame_layout.addWidget(self.signed_radio, 1, 1)
+        self.options_frame_layout.addWidget(self.float_radio, 1, 2)
 
-        self.number_type_var = tk.StringVar(value="unsigned")
+    def setup_conversion_widgets(self):
+        layout = QGridLayout(self.conversion_frame)
 
-        unsigned_radio = ttk.Radiobutton(self.options_frame, text="Unsigned", variable=self.number_type_var, value="unsigned", takefocus=False)
-        unsigned_radio.grid(row=1, column=0, padx=5, sticky="nw")
+        # Hex section
+        hex_label = QLabel("Hexadecimal")
+        self.hex_text = QTextEdit()
+        self.hex_button = QPushButton("Convert Hex")
+        self.hex_button.clicked.connect(self.convert_hex)
 
-        signed_radio = ttk.Radiobutton(self.options_frame, text="Signed", variable=self.number_type_var, value="signed", takefocus=False)
-        signed_radio.grid(row=1, column=1, padx=5, sticky="nw")
+        # Dec section
+        dec_label = QLabel("Decimal")
+        self.dec_text = QTextEdit()
+        self.dec_button = QPushButton("Convert Decimal")
+        self.dec_button.clicked.connect(self.convert_dec)
 
-        floating_radio = ttk.Radiobutton(self.options_frame, text="Floating Point", variable=self.number_type_var, value="floating", takefocus=False)
-        floating_radio.grid(row=1, column=2, padx=5, sticky="nw")
+        # Bin section
+        bin_label = QLabel("Binary")
+        self.bin_text = QTextEdit()
+        self.bin_button = QPushButton("Convert Binary")
+        self.bin_button.clicked.connect(self.convert_bin)
 
-    def create_conversion_widgets(self):
-        self.conversion_frame = ttk.Frame(self.parent_frame)
-        self.conversion_frame.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
+        # Add to layout
+        layout.addWidget(hex_label, 0, 0)
+        layout.addWidget(self.hex_text, 1, 0)
+        layout.addWidget(self.hex_button, 2, 0)
 
-        hex_label = ttk.Label(self.conversion_frame, text="Hexadecimal")
-        hex_label.grid(row=0, column=0, padx=5, pady=5, sticky="nw")
-        self.hex_text = tk.Text(self.conversion_frame, width=20, height=15)
-        self.hex_text.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
-        self.hex_button = ttk.Button(self.conversion_frame, text="Convert Hex")
-        self.hex_button.grid(row=2, column=0, padx=5, pady=5)
+        layout.addWidget(dec_label, 0, 1)
+        layout.addWidget(self.dec_text, 1, 1)
+        layout.addWidget(self.dec_button, 2, 1)
 
-        dec_label = ttk.Label(self.conversion_frame, text="Decimal")
-        dec_label.grid(row=0, column=1, padx=5, pady=5, sticky="nw")
-        self.dec_text = tk.Text(self.conversion_frame, width=20, height=15)
-        self.dec_text.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
-        self.dec_button = ttk.Button(self.conversion_frame, text="Convert Decimal")
-        self.dec_button.grid(row=2, column=1, padx=5, pady=5)
+        layout.addWidget(bin_label, 0, 2)
+        layout.addWidget(self.bin_text, 1, 2)
+        layout.addWidget(self.bin_button, 2, 2)
 
-        bin_label = ttk.Label(self.conversion_frame, text="Binary")
-        bin_label.grid(row=0, column=2, padx=5, pady=5, sticky="nw")
-        self.bin_text = tk.Text(self.conversion_frame, width=20, height=15)
-        self.bin_text.grid(row=1, column=2, padx=5, pady=5, sticky="nsew")
-        self.bin_button = ttk.Button(self.conversion_frame, text="Convert Binary")
-        self.bin_button.grid(row=2, column=2, padx=5, pady=5)
+        # Set column stretch
+        layout.setColumnStretch(0, 1)
+        layout.setColumnStretch(1, 1)
+        layout.setColumnStretch(2, 1)
 
-        # Configure grid weights for resizing
-        self.conversion_frame.grid_columnconfigure(0, weight=1)
-        self.conversion_frame.grid_columnconfigure(1, weight=1)
-        self.conversion_frame.grid_columnconfigure(2, weight=1)
-
-        self.conversion_frame.grid_rowconfigure(0, weight=0)
-        self.conversion_frame.grid_rowconfigure(1, weight=1)
-        self.conversion_frame.grid_rowconfigure(2, weight=0)
-
-        # Bind the conversion buttons to their respective functions
-        # Bind handlers to buttons
-        self.hex_button.config(command=lambda: handlers.hex_to_other(self.hex_text, self.dec_text, self.bin_text, self.number_type_var,
-                                                                self.little_endian_var, self.pad_var,
-                                                                self.show_prefix_var))
-        self.dec_button.config(command=lambda: handlers.dec_to_other(self.hex_text, self.dec_text, self.bin_text, self.number_type_var,
-                                                                self.little_endian_var, self.pad_var,
-                                                                self.show_prefix_var))
-        self.bin_button.config(command=lambda: handlers.bin_to_other(self.hex_text, self.dec_text, self.bin_text, self.number_type_var,
-                                                                self.little_endian_var, self.pad_var,
-                                                                self.show_prefix_var))
-
-        # Bind handlers to text boxes for shift+enter
-        self.hex_text.bind("<Shift-Return>",
-                           lambda event: handlers.hex_to_other(self.hex_text, self.dec_text, self.bin_text, self.number_type_var,
-                                                               self.little_endian_var, self.pad_var, self.show_prefix_var))
-        self.dec_text.bind("<Shift-Return>",
-                           lambda event: handlers.dec_to_other(self.hex_text, self.dec_text, self.bin_text, self.number_type_var,
-                                                               self.little_endian_var, self.pad_var, self.show_prefix_var))
-        self.bin_text.bind("<Shift-Return>",
-                           lambda event: handlers.bin_to_other(self.hex_text, self.dec_text, self.bin_text, self.number_type_var,
-                                                               self.little_endian_var, self.pad_var, self.show_prefix_var))
+        # Set row stretch for the text edits
+        layout.setRowStretch(1, 1)
 
     def toggle_options(self):
-        if self.options_visible:
-            self.animate_hide(self.options_frame)
-            self.toggle_button.config(text="Show Options")
+        if not self.options_visible:
+            # Show options
+            self.options_frame.setMaximumHeight(0)  # Reset before animation
+            # Get required height by temporarily removing max height constraint
+            self.options_frame.setMaximumHeight(1000)
+            target_height = self.options_frame.sizeHint().height()
+            self.options_frame.setMaximumHeight(0)  # Reset again
+
+            # Configure and start animation
+            self.animation.setStartValue(0)
+            self.animation.setEndValue(target_height)
+            self.animation.start()
+            self.toggle_button.setText("Hide Options")
         else:
-            self.options_frame.grid()
-            self.animate_show(self.options_frame)
-            self.toggle_button.config(text="Hide Options")
+            # Hide options
+            self.animation.setStartValue(self.options_frame.height())
+            self.animation.setEndValue(0)
+            self.animation.start()
+            self.toggle_button.setText("Show Options")
+
         self.options_visible = not self.options_visible
 
-    def animate_show(self, frame, height=0):
-        frame.update_idletasks()
-        max_height = frame.winfo_reqheight()
-        height += 5  # Smaller increment for smoother animation
-        if height < max_height:
-            frame.grid_configure(pady=(height, 5))
-            self.after(15, self.animate_show, frame, height)  # Longer delay for smoother animation
-        else:
-            frame.grid_configure(pady=(max_height, 5))
+    def convert_hex(self):
+        dec_result, bin_result = handlers.hex_to_other(
+            self.hex_text.toPlainText(),
+            self.pad_check.isChecked(),
+            self.prefix_check.isChecked(),
+            self.endian_check.isChecked(),
+            self.unsigned_radio.isChecked(),
+            self.signed_radio.isChecked(),
+            self.float_radio.isChecked()
+        )
+        if dec_result is not None and bin_result is not None:
+            self.dec_text.setPlainText(dec_result)
+            self.bin_text.setPlainText(bin_result)
 
-    def animate_hide(self, frame, height=None):
-        if height is None:
-            height = frame.winfo_reqheight()
-        height -= 5  # Smaller decrement for smoother animation
-        if height > 0:
-            frame.grid_configure(pady=(height, 5))
-            self.after(15, self.animate_hide, frame, height)  # Longer delay for smoother animation
-        else:
-            frame.grid_remove()
+    def convert_dec(self):
+        hex_result, dec_result, bin_result = handlers.dec_to_other(
+            self.dec_text.toPlainText(),
+            self.pad_check.isChecked(),
+            self.prefix_check.isChecked(),
+            self.endian_check.isChecked(),
+            self.unsigned_radio.isChecked(),
+            self.signed_radio.isChecked(),
+            self.float_radio.isChecked()
+        )
+        if hex_result is not None and bin_result is not None and dec_result is not None:
+            self.hex_text.setPlainText(hex_result)
+            self.dec_text.setPlainText(dec_result)
+            self.bin_text.setPlainText(bin_result)
+
+    def convert_bin(self):
+        dec_result, hex_result = handlers.bin_to_other(
+            self.bin_text.toPlainText(),
+            self.pad_check.isChecked(),
+            self.prefix_check.isChecked(),
+            self.endian_check.isChecked(),
+            self.unsigned_radio.isChecked(),
+            self.signed_radio.isChecked(),
+            self.float_radio.isChecked()
+        )
+        if dec_result is not None and hex_result is not None:
+            self.dec_text.setPlainText(dec_result)
+            self.hex_text.setPlainText(hex_result)
