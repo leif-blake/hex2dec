@@ -67,13 +67,19 @@ class Hex2DecQt(QMainWindow):
     def setup_options_widgets(self):
         # Checkboxes
         self.pad_check = QCheckBox("Enable Padding")
+        self.pad_check.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.prefix_check = QCheckBox("Show Prefix")
+        self.prefix_check.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.endian_check = QCheckBox("Little Endian")
+        self.endian_check.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
         # Radio buttons
         self.unsigned_radio = QRadioButton("Unsigned")
+        self.unsigned_radio.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.signed_radio = QRadioButton("Signed")
+        self.signed_radio.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.float_radio = QRadioButton("Floating Point")
+        self.float_radio.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.unsigned_radio.setChecked(True)
 
         # Add to layout
