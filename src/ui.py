@@ -172,7 +172,7 @@ class Hex2DecQt(QMainWindow):
         self.options_visible = not self.options_visible
 
     def convert_hex(self):
-        dec_result, bin_result = handlers.hex_to_other(
+        hex_result, dec_result, bin_result = handlers.hex_to_other(
             self.hex_text.toPlainText(),
             self.pad_check.isChecked(),
             self.prefix_check.isChecked(),
@@ -181,7 +181,9 @@ class Hex2DecQt(QMainWindow):
             self.signed_radio.isChecked(),
             self.float_radio.isChecked()
         )
-        if dec_result is not None and bin_result is not None:
+        if hex_result is not None and bin_result is not None and dec_result is not None:
+            self.hex_text.setPlainText(hex_result)
+            self.hex_text.moveCursor(self.hex_text.textCursor().MoveOperation.End)
             self.dec_text.setPlainText(dec_result)
             self.bin_text.setPlainText(bin_result)
 
@@ -198,10 +200,11 @@ class Hex2DecQt(QMainWindow):
         if hex_result is not None and bin_result is not None and dec_result is not None:
             self.hex_text.setPlainText(hex_result)
             self.dec_text.setPlainText(dec_result)
+            self.dec_text.moveCursor(self.dec_text.textCursor().MoveOperation.End)
             self.bin_text.setPlainText(bin_result)
 
     def convert_bin(self):
-        hex_result, dec_result  = handlers.bin_to_other(
+        hex_result, dec_result, bin_result  = handlers.bin_to_other(
             self.bin_text.toPlainText(),
             self.pad_check.isChecked(),
             self.prefix_check.isChecked(),
@@ -210,6 +213,8 @@ class Hex2DecQt(QMainWindow):
             self.signed_radio.isChecked(),
             self.float_radio.isChecked()
         )
-        if dec_result is not None and hex_result is not None:
-            self.dec_text.setPlainText(dec_result)
+        if hex_result is not None and bin_result is not None and dec_result is not None:
             self.hex_text.setPlainText(hex_result)
+            self.dec_text.setPlainText(dec_result)
+            self.bin_text.setPlainText(bin_result)
+            self.bin_text.moveCursor(self.bin_text.textCursor().MoveOperation.End)
