@@ -9,6 +9,6 @@ from ui import Hex2DecQt
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = Hex2DecQt(version="0.0.3")
+    window = Hex2DecQt(version="0.0.4")
     window.show()
     sys.exit(app.exec())
