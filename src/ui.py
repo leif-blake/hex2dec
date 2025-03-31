@@ -96,18 +96,21 @@ class Hex2DecQt(QMainWindow):
         # Hex section
         hex_label = QLabel("Hexadecimal")
         self.hex_text = QTextEdit()
+        self.hex_text.installEventFilter(self)
         self.hex_button = QPushButton("Convert Hex")
         self.hex_button.clicked.connect(self.convert_hex)
 
         # Dec section
         dec_label = QLabel("Decimal")
         self.dec_text = QTextEdit()
+        self.dec_text.installEventFilter(self)
         self.dec_button = QPushButton("Convert Decimal")
         self.dec_button.clicked.connect(self.convert_dec)
 
         # Bin section
         bin_label = QLabel("Binary")
         self.bin_text = QTextEdit()
+        self.bin_text.installEventFilter(self)
         self.bin_button = QPushButton("Convert Binary")
         self.bin_button.clicked.connect(self.convert_bin)
 
@@ -131,6 +134,19 @@ class Hex2DecQt(QMainWindow):
 
         # Set row stretch for the text edits
         layout.setRowStretch(1, 1)
+
+    def eventFilter(self, obj, event):
+        if event.type() == event.Type.KeyPress and event.modifiers() == Qt.KeyboardModifier.ShiftModifier and event.key() == Qt.Key.Key_Return:
+            if obj == self.hex_text:
+                self.convert_hex()
+                return True
+            elif obj == self.dec_text:
+                self.convert_dec()
+                return True
+            elif obj == self.bin_text:
+                self.convert_bin()
+                return True
+        return super().eventFilter(obj, event)
 
     def toggle_options(self):
         if not self.options_visible:
