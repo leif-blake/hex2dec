@@ -10,7 +10,7 @@ import handlers
 class Hex2DecQt(QMainWindow):
     def __init__(self, version="1.0"):
         super().__init__()
-        self.options_visible = False
+        self.options_visible = True
         self.setWindowTitle(f"Hex2Dec Converter - {version}")
         self.resize(800, 600)
 
@@ -36,7 +36,7 @@ class Hex2DecQt(QMainWindow):
         self.main_layout.setContentsMargins(10, 10, 10, 10)
 
         # Toggle button
-        self.toggle_button = QPushButton("Show Options (o)")
+        self.toggle_button = QPushButton("Hide Options (o)")
         self.toggle_button.clicked.connect(self.toggle_options)
         self.main_layout.addWidget(self.toggle_button, alignment=Qt.AlignmentFlag.AlignLeft)
 
@@ -45,10 +45,6 @@ class Hex2DecQt(QMainWindow):
         self.options_frame.setStyleSheet("background-color: #f0f0f0;")
         self.options_frame_layout = QGridLayout(self.options_frame)
         self.setup_options_widgets()
-
-        # Initially set height to 0
-        self.options_frame.setMaximumHeight(0)
-        self.options_frame.setMinimumHeight(0)
         self.main_layout.addWidget(self.options_frame)
 
         # Animation for options frame
