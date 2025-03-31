@@ -135,19 +135,6 @@ class Hex2DecQt(QMainWindow):
         # Set row stretch for the text edits
         layout.setRowStretch(1, 1)
 
-    def eventFilter(self, obj, event):
-        if event.type() == event.Type.KeyPress and event.modifiers() == Qt.KeyboardModifier.ShiftModifier and event.key() == Qt.Key.Key_Return:
-            if obj == self.hex_text:
-                self.convert_hex()
-                return True
-            elif obj == self.dec_text:
-                self.convert_dec()
-                return True
-            elif obj == self.bin_text:
-                self.convert_bin()
-                return True
-        return super().eventFilter(obj, event)
-
     def toggle_options(self):
         if not self.options_visible:
             # Show options
@@ -218,3 +205,38 @@ class Hex2DecQt(QMainWindow):
             self.dec_text.setPlainText(dec_result)
             self.bin_text.setPlainText(bin_result)
             self.bin_text.moveCursor(self.bin_text.textCursor().MoveOperation.End)
+
+    def eventFilter(self, obj, event):
+        if event.type() == event.Type.KeyPress:
+            if event.modifiers() == Qt.KeyboardModifier.ShiftModifier and event.key() == Qt.Key.Key_Return:
+                if obj == self.hex_text:
+                    self.convert_hex()
+                    return True
+                elif obj == self.dec_text:
+                    self.convert_dec()
+                    return True
+                elif obj == self.bin_text:
+                    self.convert_bin()
+                    return True
+            elif event.key() == Qt.Key.Key_Backtab:
+                if obj == self.hex_text:
+                    self.bin_text.setFocus()
+                    return True
+                elif obj == self.dec_text:
+                    self.hex_text.setFocus()
+                    return True
+                elif obj == self.bin_text:
+                    self.dec_text.setFocus()
+                    return True
+            elif event.key() == Qt.Key.Key_Tab:
+                if obj == self.hex_text:
+                    self.dec_text.setFocus()
+                    return True
+                elif obj == self.dec_text:
+                    self.bin_text.setFocus()
+                    return True
+                elif obj == self.bin_text:
+                    self.hex_text.setFocus()
+                    return True
+
+        return super().eventFilter(obj, event)
