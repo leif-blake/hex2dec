@@ -86,6 +86,14 @@ class Hex2DecQt(QMainWindow):
         self.options_frame_layout.addWidget(self.signed_radio, 1, 1)
         self.options_frame_layout.addWidget(self.float_radio, 1, 2)
 
+        # Add label in bottom right corner indicating shift-enter for conversion
+        shift_enter_label = QLabel("Press Shift+Enter to convert")
+        shift_enter_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.options_frame_layout.addWidget(shift_enter_label, 2, 0)
+        self.options_frame_layout.setColumnStretch(0, 1)
+        self.options_frame_layout.setColumnStretch(1, 1)
+        self.options_frame_layout.setColumnStretch(2, 1)
+
     def setup_conversion_widgets(self):
         layout = QGridLayout(self.conversion_frame)
 
