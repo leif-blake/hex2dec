@@ -179,7 +179,7 @@ class Hex2DecQt(QMainWindow):
             self.bin_text.setPlainText(bin_result)
 
     def convert_bin(self):
-        dec_result, hex_result = handlers.bin_to_other(
+        hex_result, dec_result  = handlers.bin_to_other(
             self.bin_text.toPlainText(),
             self.pad_check.isChecked(),
             self.prefix_check.isChecked(),
