@@ -23,6 +23,7 @@ def hex_to_other(hex_string, pad=False, show_prefix=False, little_endian=False,
     hex_strings = hex_string.strip().splitlines()
     dec_results = []
     bin_results = []
+    formatted_hex = []
 
     value = UniversalFormat()
     value.set_type(number_type)
@@ -30,6 +31,7 @@ def hex_to_other(hex_string, pad=False, show_prefix=False, little_endian=False,
         value.set_endianness('little')
 
     for hex_str in hex_strings:
+        formatted_hex.append(hex_str)
         try:
             value.from_hex_string(hex_str)
             dec_results.append(value.to_dec_string())
@@ -39,7 +41,7 @@ def hex_to_other(hex_string, pad=False, show_prefix=False, little_endian=False,
                                  f"Invalid Hexadecimal Value: {hex_str}\n{error}")
             return None, None
 
-    return "\n".join(dec_results), "\n".join(bin_results)
+    return "\n".join(formatted_hex), "\n".join(dec_results), "\n".join(bin_results)
 
 
 def dec_to_other(dec_string, pad=False, show_prefix=False, little_endian=False,
@@ -59,7 +61,7 @@ def dec_to_other(dec_string, pad=False, show_prefix=False, little_endian=False,
     decimal_strings = dec_string.strip().splitlines()
     hex_results = []
     bin_results = []
-    formatted_decs = []
+    formatted_dec = []
 
     value = UniversalFormat()
     value.set_type(number_type)
@@ -73,7 +75,7 @@ def dec_to_other(dec_string, pad=False, show_prefix=False, little_endian=False,
                 dec_str = str(int(float(dec_str)))
             if '-' in dec_str and number_type == "unsigned":
                 dec_str = str(abs(int(dec_str)))
-            formatted_decs.append(dec_str)
+            formatted_dec.append(dec_str)
 
             value.from_dec_string(dec_str)
             hex_results.append(value.to_hex_string(pad, show_prefix))
@@ -83,7 +85,7 @@ def dec_to_other(dec_string, pad=False, show_prefix=False, little_endian=False,
                                  f"Invalid Decimal Value: {dec_str}\n{error}")
             return None, None, None
 
-    return "\n".join(hex_results), "\n".join(formatted_decs), "\n".join(bin_results)
+    return "\n".join(hex_results), "\n".join(formatted_dec), "\n".join(bin_results)
 
 
 def bin_to_other(bin_string, pad=False, show_prefix=False, little_endian=False,
@@ -103,6 +105,7 @@ def bin_to_other(bin_string, pad=False, show_prefix=False, little_endian=False,
     binary_strings = bin_string.strip().splitlines()
     hex_results = []
     dec_results = []
+    formatted_bin = []
 
     value = UniversalFormat()
     value.set_type(number_type)
@@ -110,6 +113,7 @@ def bin_to_other(bin_string, pad=False, show_prefix=False, little_endian=False,
         value.set_endianness('little')
 
     for bin_str in binary_strings:
+        formatted_bin.append(bin_str)
         try:
             value.from_bin_string(bin_str)
             hex_results.append(value.to_hex_string(pad, show_prefix))
@@ -119,4 +123,4 @@ def bin_to_other(bin_string, pad=False, show_prefix=False, little_endian=False,
                                  f"Invalid Binary Value: {bin_str}\n{error}")
             return None, None
 
-    return "\n".join(hex_results), "\n".join(dec_results)
+    return "\n".join(hex_results), "\n".join(dec_results), "\n".join(formatted_bin)
