@@ -36,7 +36,7 @@ class Hex2DecQt(QMainWindow):
         self.main_layout.setContentsMargins(10, 10, 10, 10)
 
         # Toggle button
-        self.toggle_button = QPushButton("Show Options")
+        self.toggle_button = QPushButton("Show Options (o)")
         self.toggle_button.clicked.connect(self.toggle_options)
         self.main_layout.addWidget(self.toggle_button, alignment=Qt.AlignmentFlag.AlignLeft)
 
@@ -54,7 +54,7 @@ class Hex2DecQt(QMainWindow):
         # Animation for options frame
         self.animation = QPropertyAnimation(self.options_frame, b"maximumHeight")
         self.animation.setEasingCurve(QEasingCurve.Type.OutCubic)
-        self.animation.setDuration(300)
+        self.animation.setDuration(200)
 
         # Conversion frame
         self.conversion_frame = QWidget()
@@ -66,19 +66,19 @@ class Hex2DecQt(QMainWindow):
 
     def setup_options_widgets(self):
         # Checkboxes
-        self.pad_check = QCheckBox("Enable Padding")
+        self.pad_check = QCheckBox("Enable Padding (p)")
         self.pad_check.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.prefix_check = QCheckBox("Show Prefix")
+        self.prefix_check = QCheckBox("Show Prefix (k)")
         self.prefix_check.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.endian_check = QCheckBox("Little Endian")
+        self.endian_check = QCheckBox("Little Endian (n)")
         self.endian_check.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
         # Radio buttons
-        self.unsigned_radio = QRadioButton("Unsigned")
+        self.unsigned_radio = QRadioButton("Unsigned (u)")
         self.unsigned_radio.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.signed_radio = QRadioButton("Signed")
+        self.signed_radio = QRadioButton("Signed (s)")
         self.signed_radio.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.float_radio = QRadioButton("Floating Point")
+        self.float_radio = QRadioButton("Floating Point (l)")
         self.float_radio.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.unsigned_radio.setChecked(True)
 
@@ -148,13 +148,13 @@ class Hex2DecQt(QMainWindow):
             self.animation.setStartValue(0)
             self.animation.setEndValue(target_height)
             self.animation.start()
-            self.toggle_button.setText("Hide Options")
+            self.toggle_button.setText("Hide Options (o)")
         else:
             # Hide options
             self.animation.setStartValue(self.options_frame.height())
             self.animation.setEndValue(0)
             self.animation.start()
-            self.toggle_button.setText("Show Options")
+            self.toggle_button.setText("Show Options (o)")
 
         self.options_visible = not self.options_visible
 
@@ -238,5 +238,53 @@ class Hex2DecQt(QMainWindow):
                 elif obj == self.bin_text:
                     self.hex_text.setFocus()
                     return True
+            # 'o' to toggle options
+            elif event.key() == Qt.Key.Key_O:
+                self.toggle_options()
+                return True
+            elif event.key() == Qt.Key.Key_P:
+                self.pad_check.setChecked(not self.pad_check.isChecked())
+                return True
+            elif event.key() == Qt.Key.Key_K:
+                self.prefix_check.setChecked(not self.prefix_check.isChecked())
+                return True
+            elif event.key() == Qt.Key.Key_N:
+                self.endian_check.setChecked(not self.endian_check.isChecked())
+                return True
+            elif event.key() == Qt.Key.Key_U:
+                self.unsigned_radio.setChecked(True)
+                return True
+            elif event.key() == Qt.Key.Key_S:
+                self.signed_radio.setChecked(True)
+                return True
+            elif event.key() == Qt.Key.Key_L:
+                self.float_radio.setChecked(True)
+                return True
 
         return super().eventFilter(obj, event)
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_O:
+            self.toggle_options()
+            return
+        elif event.key() == Qt.Key.Key_P:
+            self.pad_check.setChecked(not self.pad_check.isChecked())
+            return
+        elif event.key() == Qt.Key.Key_K:
+            self.prefix_check.setChecked(not self.prefix_check.isChecked())
+            return
+        elif event.key() == Qt.Key.Key_N:
+            self.endian_check.setChecked(not self.endian_check.isChecked())
+            return
+        elif event.key() == Qt.Key.Key_U:
+            self.unsigned_radio.setChecked(True)
+            return
+        elif event.key() == Qt.Key.Key_S:
+            self.signed_radio.setChecked(True)
+            return
+        elif event.key() == Qt.Key.Key_L:
+            self.float_radio.setChecked(True)
+            return
+        super().keyPressEvent(event)
+
+
