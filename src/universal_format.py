@@ -91,11 +91,11 @@ class UniversalFormat:
 
         # Handle signed and unsigned types
         if self.value_type == "unsigned":
-            # Convert to unsigned integer
-            dec_string = dec_string.lstrip('-')
+            dec_string = str(int(float(dec_string)))    # Convert to integer
+            dec_string = dec_string.lstrip('-')         # Convert to unsigned integer
             self.value = int(dec_string)
         elif self.value_type == "signed":
-            # Convert to signed integer
+            dec_string = str(int(float(dec_string)))    # Convert to integer
             self.value = int(dec_string)
         elif self.value_type == "floating":
             # Convert to floating point number
@@ -191,9 +191,9 @@ class UniversalFormat:
 
     def to_dec_string(self):
         """
-                Convert the value to a decimal string representation.
-                :return:
-                """
+        Convert the value to a decimal string representation.
+        :return:
+        """
         self._check_value()
         decimal_string = str(self.value)
 
