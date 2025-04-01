@@ -113,10 +113,7 @@ class Hex2DecQt(QMainWindow):
         # Add label in bottom right corner indicating shift-enter for conversion
         shift_enter_label = QLabel("Press Shift+Enter to convert, Ctrl+Z/Y to undo/redo")
         shift_enter_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        self.options_frame_layout.addWidget(shift_enter_label, 2, 0)
-        self.options_frame_layout.setColumnStretch(0, 1)
-        self.options_frame_layout.setColumnStretch(1, 1)
-        self.options_frame_layout.setColumnStretch(2, 1)
+        self.options_frame_layout.addWidget(shift_enter_label, 2, 0, 1, 3)
 
     def setup_conversion_widgets(self):
         layout = QGridLayout(self.conversion_frame)
