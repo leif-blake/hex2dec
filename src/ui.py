@@ -5,14 +5,21 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QPushButton, QVBoxLayout
 from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve
 
 import handlers
+from settings import Settings
 
 
 class Hex2DecQt(QMainWindow):
     def __init__(self, version="1.0"):
         super().__init__()
-        self.options_visible = True
+
+        # Import settings
+        self.settings = Settings()
+        self.settings.load_settings()
+
+        self.options_visible = self.settings.get_setting(['showQuickOptions'])
         self.setWindowTitle(f"Hex2Dec Converter - {version}")
-        self.resize(800, 600)
+        self.resize(self.settings.get_setting(['screenSize', 'width']),
+                    self.settings.get_setting(['screenSize', 'height']))
 
         # Declare UI variables
         self.hex_text = None
@@ -36,7 +43,10 @@ class Hex2DecQt(QMainWindow):
         self.main_layout.setContentsMargins(10, 10, 10, 10)
 
         # Toggle button
-        self.toggle_button = QPushButton("Hide Options (o)")
+        if self.options_visible:
+            self.toggle_button = QPushButton("Hide Options (o)")
+        else:
+            self.toggle_button = QPushButton("Show Options (o)")
         self.toggle_button.clicked.connect(self.toggle_options)
         self.main_layout.addWidget(self.toggle_button, alignment=Qt.AlignmentFlag.AlignLeft)
 
@@ -45,6 +55,10 @@ class Hex2DecQt(QMainWindow):
         self.options_frame.setStyleSheet("background-color: #f0f0f0;")
         self.options_frame_layout = QGridLayout(self.options_frame)
         self.setup_options_widgets()
+
+        if not self.options_visible:
+            self.options_frame.setMaximumHeight(0)
+            self.options_frame.setMinimumHeight(0)
         self.main_layout.addWidget(self.options_frame)
 
         # Animation for options frame
@@ -69,6 +83,11 @@ class Hex2DecQt(QMainWindow):
         self.endian_check = QCheckBox("Little Endian (n)")
         self.endian_check.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
+        # Set default values from settings
+        self.pad_check.setChecked(self.settings.get_setting(['quickOptions', 'pad']))
+        self.prefix_check.setChecked(self.settings.get_setting(['quickOptions', 'prefix']))
+        self.endian_check.setChecked(self.settings.get_setting(['quickOptions', 'endianness']) == "little")
+
         # Radio buttons
         self.unsigned_radio = QRadioButton("Unsigned (u)")
         self.unsigned_radio.setFocusPolicy(Qt.FocusPolicy.NoFocus)
@@ -77,6 +96,17 @@ class Hex2DecQt(QMainWindow):
         self.float_radio = QRadioButton("Floating Point (l)")
         self.float_radio.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.unsigned_radio.setChecked(True)
+
+        # Set default values from settings
+        default_type = self.settings.get_setting(['quickOptions', 'defaultType'])
+        if default_type == "unsigned":
+            self.unsigned_radio.setChecked(True)
+        elif default_type == "signed":
+            self.signed_radio.setChecked(True)
+        elif default_type == "floating":
+            self.float_radio.setChecked(True)
+        else:
+            self.unsigned_radio.setChecked(True)
 
         # Add to layout
         self.options_frame_layout.addWidget(self.pad_check, 0, 0)
@@ -291,4 +321,18 @@ class Hex2DecQt(QMainWindow):
             return
         super().keyPressEvent(event)
 
+    def closeEvent(self, event):
+        # Save settings
+        self.settings.set_setting(['showQuickOptions'], self.options_visible)
+
+        self.settings.set_setting(['quickOptions', 'pad'], self.pad_check.isChecked())
+        self.settings.set_setting(['quickOptions', 'prefix'], self.prefix_check.isChecked())
+        self.settings.set_setting(['quickOptions', 'endianness'], "little" if self.endian_check.isChecked() else "big")
+        self.settings.set_setting(['quickOptions', 'defaultType'], "unsigned" if self.unsigned_radio.isChecked() else "signed" if self.signed_radio.isChecked() else "floating")
+
+        self.settings.set_setting(['screenSize', 'width'], self.width())
+        self.settings.set_setting(['screenSize', 'height'], self.height())
+
+        self.settings.save_settings()
+        super().closeEvent(event)
 

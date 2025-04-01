@@ -1,0 +1,13 @@
+{
+    "showQuickOptions": true,
+    "quickOptions": {
+        "pad": false,
+        "prefix": false,
+        "endianness": "little",
+        "defaultType": "unsigned"
+    },
+    "screenSize": {
+        "width": 494,
+        "height": 323
+    }
+}
