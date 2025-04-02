@@ -4,7 +4,7 @@
 #define MyAppName "Hex2Dec"
 #define MyAppVersion "0.1.1"
 #define MyAppPublisher "Leif Blake"
-#define MyAppExeName "Hex2DecQt.exe"
+#define MyAppExeName "Hex2Dec.exe"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
@@ -19,7 +19,7 @@ DisableProgramGroupPage=yes
 ; Remove the following line to run in administrative install mode (install for all users.)
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-OutputBaseFilename=Hex2DecQt_Installer_{#MyAppVersion}
+OutputBaseFilename=Hex2Dec_Installer_{#MyAppVersion}
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -33,8 +33,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "dist\Hex2DecQt\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "dist\Hex2DecQt\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "dist\Hex2Dec\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\Hex2Dec\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "res\*"; DestDir: "{app}\res"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
