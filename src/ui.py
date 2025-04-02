@@ -5,14 +5,21 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QPushButton, QVBoxLayout
 from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve
 
 import handlers
+from settings import Settings
 
 
 class Hex2DecQt(QMainWindow):
     def __init__(self, version="1.0"):
         super().__init__()
-        self.options_visible = True
+
+        # Import settings
+        self.settings = Settings()
+        self.settings.load_settings()
+
+        self.options_visible = self.settings.get_setting(['showQuickOptions'])
         self.setWindowTitle(f"Hex2Dec Converter - {version}")
-        self.resize(800, 600)
+        self.resize(self.settings.get_setting(['screenSize', 'width']),
+                    self.settings.get_setting(['screenSize', 'height']))
 
         # Declare UI variables
         self.hex_text = None
@@ -36,7 +43,10 @@ class Hex2DecQt(QMainWindow):
         self.main_layout.setContentsMargins(10, 10, 10, 10)
 
         # Toggle button
-        self.toggle_button = QPushButton("Hide Options (o)")
+        if self.options_visible:
+            self.toggle_button = QPushButton("Hide Options (o)")
+        else:
+            self.toggle_button = QPushButton("Show Options (o)")
         self.toggle_button.clicked.connect(self.toggle_options)
         self.main_layout.addWidget(self.toggle_button, alignment=Qt.AlignmentFlag.AlignLeft)
 
@@ -45,6 +55,12 @@ class Hex2DecQt(QMainWindow):
         self.options_frame.setStyleSheet("background-color: #f0f0f0;")
         self.options_frame_layout = QGridLayout(self.options_frame)
         self.setup_options_widgets()
+
+        self.load_quick_options(self.settings)
+
+        if not self.options_visible:
+            self.options_frame.setMaximumHeight(0)
+            self.options_frame.setMinimumHeight(0)
         self.main_layout.addWidget(self.options_frame)
 
         # Animation for options frame
@@ -59,6 +75,14 @@ class Hex2DecQt(QMainWindow):
 
         # Make conversion frame expand to fill space
         self.main_layout.setStretch(2, 1)
+
+        # Push the default state
+        self.quick_options_history = []
+        self.hex_text_history = []
+        self.dec_text_history = []
+        self.bin_text_history = []
+        self.history_index = 0
+        self.push_state()
 
     def setup_options_widgets(self):
         # Checkboxes
@@ -87,12 +111,9 @@ class Hex2DecQt(QMainWindow):
         self.options_frame_layout.addWidget(self.float_radio, 1, 2)
 
         # Add label in bottom right corner indicating shift-enter for conversion
-        shift_enter_label = QLabel("Press Shift+Enter to convert")
+        shift_enter_label = QLabel("Press Shift+Enter to convert, Ctrl+Z/Y to undo/redo")
         shift_enter_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        self.options_frame_layout.addWidget(shift_enter_label, 2, 0)
-        self.options_frame_layout.setColumnStretch(0, 1)
-        self.options_frame_layout.setColumnStretch(1, 1)
-        self.options_frame_layout.setColumnStretch(2, 1)
+        self.options_frame_layout.addWidget(shift_enter_label, 2, 0, 1, 3)
 
     def setup_conversion_widgets(self):
         layout = QGridLayout(self.conversion_frame)
@@ -139,6 +160,35 @@ class Hex2DecQt(QMainWindow):
         # Set row stretch for the text edits
         layout.setRowStretch(1, 1)
 
+    def load_quick_options(self, settings: Settings):
+        # Load settings from the Settings object
+        self.pad_check.setChecked(settings.get_setting(['quickOptions', 'pad']))
+        self.prefix_check.setChecked(settings.get_setting(['quickOptions', 'prefix']))
+        self.endian_check.setChecked(settings.get_setting(['quickOptions', 'endianness']) == "little")
+        default_type = settings.get_setting(['quickOptions', 'defaultType'])
+        if default_type == "unsigned":
+            self.unsigned_radio.setChecked(True)
+        elif default_type == "signed":
+            self.signed_radio.setChecked(True)
+        elif default_type == "floating":
+            self.float_radio.setChecked(True)
+        else:
+            self.unsigned_radio.setChecked(True)
+
+    def set_qick_options(self, settings):
+        # Set the quick options in settings based on the current state of the checkboxes and radio buttons
+        settings.set_setting(['showQuickOptions'], self.options_visible)
+
+        settings.set_setting(['quickOptions', 'pad'], self.pad_check.isChecked())
+        settings.set_setting(['quickOptions', 'prefix'], self.prefix_check.isChecked())
+        settings.set_setting(['quickOptions', 'endianness'], "little" if self.endian_check.isChecked() else "big")
+        settings.set_setting(['quickOptions', 'defaultType'],
+                                  "unsigned" if self.unsigned_radio.isChecked() else "signed" if self.signed_radio.isChecked() else "floating")
+
+        settings.set_setting(['screenSize', 'width'], self.width())
+        settings.set_setting(['screenSize', 'height'], self.height())
+
+
     def toggle_options(self):
         if not self.options_visible:
             # Show options
@@ -177,6 +227,7 @@ class Hex2DecQt(QMainWindow):
             self.hex_text.moveCursor(self.hex_text.textCursor().MoveOperation.End)
             self.dec_text.setPlainText(dec_result)
             self.bin_text.setPlainText(bin_result)
+            self.push_state()
 
     def convert_dec(self):
         hex_result, dec_result, bin_result = handlers.dec_to_other(
@@ -193,6 +244,7 @@ class Hex2DecQt(QMainWindow):
             self.dec_text.setPlainText(dec_result)
             self.dec_text.moveCursor(self.dec_text.textCursor().MoveOperation.End)
             self.bin_text.setPlainText(bin_result)
+            self.push_state()
 
     def convert_bin(self):
         hex_result, dec_result, bin_result  = handlers.bin_to_other(
@@ -209,6 +261,7 @@ class Hex2DecQt(QMainWindow):
             self.dec_text.setPlainText(dec_result)
             self.bin_text.setPlainText(bin_result)
             self.bin_text.moveCursor(self.bin_text.textCursor().MoveOperation.End)
+            self.push_state()
 
     def eventFilter(self, obj, event):
         if event.type() == event.Type.KeyPress:
@@ -222,6 +275,12 @@ class Hex2DecQt(QMainWindow):
                 elif obj == self.bin_text:
                     self.convert_bin()
                     return True
+            elif event.modifiers() == Qt.KeyboardModifier.ControlModifier and event.key() == Qt.Key.Key_Z:
+                self.load_previous_state()
+                return True
+            elif event.modifiers() == Qt.KeyboardModifier.ControlModifier and event.key() == Qt.Key.Key_Y:
+                self.load_next_state()
+                return True
             elif event.key() == Qt.Key.Key_Backtab:
                 if obj == self.hex_text:
                     self.bin_text.setFocus()
@@ -268,7 +327,13 @@ class Hex2DecQt(QMainWindow):
         return super().eventFilter(obj, event)
 
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key.Key_O:
+        if event.modifiers() == Qt.KeyboardModifier.ControlModifier and event.key() == Qt.Key.Key_Z:
+            self.load_previous_state()
+            return
+        elif event.modifiers() == Qt.KeyboardModifier.ControlModifier and event.key() == Qt.Key.Key_Y:
+            self.load_next_state()
+            return
+        elif event.key() == Qt.Key.Key_O:
             self.toggle_options()
             return
         elif event.key() == Qt.Key.Key_P:
@@ -291,4 +356,58 @@ class Hex2DecQt(QMainWindow):
             return
         super().keyPressEvent(event)
 
+    def push_state(self):
+        # If not most recent state, remove all states after the current index
+        if self.history_index < len(self.quick_options_history) - 1:
+            self.quick_options_history = self.quick_options_history[:self.history_index + 1]
+            self.hex_text_history = self.hex_text_history[:self.history_index + 1]
+            self.dec_text_history = self.dec_text_history[:self.history_index + 1]
+            self.bin_text_history = self.bin_text_history[:self.history_index + 1]
+
+        # Save the current quick options and conversion text
+        settings = Settings()
+        self.set_qick_options(settings)
+        self.quick_options_history.append(settings)
+        self.hex_text_history.append(self.hex_text.toPlainText())
+        self.dec_text_history.append(self.dec_text.toPlainText())
+        self.bin_text_history.append(self.bin_text.toPlainText())
+
+        # Limit the history to the last 100 states
+        if len(self.quick_options_history) > 100:
+            self.quick_options_history.pop(0)
+            self.hex_text_history.pop(0)
+            self.dec_text_history.pop(0)
+            self.bin_text_history.pop(0)
+
+        self.history_index = len(self.quick_options_history) - 1
+
+    def load_state_by_index(self, index):
+        # Load the state at the given index
+        if len(self.quick_options_history) == 0 or index < 0 or index >= len(self.quick_options_history):
+            return
+
+        settings = self.quick_options_history[index]
+        self.load_quick_options(settings)
+        self.hex_text.setPlainText(self.hex_text_history[index])
+        self.dec_text.setPlainText(self.dec_text_history[index])
+        self.bin_text.setPlainText(self.bin_text_history[index])
+
+    def load_previous_state(self):
+        # Load the previous state if it exists
+        if self.history_index > 0:
+            self.history_index -= 1
+            self.load_state_by_index(self.history_index)
+
+    def load_next_state(self):
+        # Load the next state if it exists
+        if self.history_index < len(self.quick_options_history) - 1:
+            self.history_index += 1
+            self.load_state_by_index(self.history_index)
+
+    def closeEvent(self, event):
+        # Save settings
+        self.set_qick_options(self.settings)
+
+        self.settings.save_settings()
+        super().closeEvent(event)
 
