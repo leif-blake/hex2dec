@@ -8,5 +8,5 @@ Folder structure prerequisites:
 In a terminal, run
 
 ```
-pyinstaller ./Hex2DecQt.spec --noconfirm
+pyinstaller ./Hex2Dec.spec --noconfirm
 ```
