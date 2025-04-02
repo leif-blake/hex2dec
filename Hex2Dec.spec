@@ -6,8 +6,8 @@ a = Analysis(
     ['src/main.py'],
     pathex=['.'],
     binaries=[],
-    datas=[('.venv/Lib/site-packages/PyQt6', 'PyQt6')],
-    hiddenimports=['PyQt6.QtCore', 'PyQt6.QtGui', 'PyQt6.QtWidgets', 'PyQt6.QtNetwork', 'PyQt6.QtPrintSupport'],
+    datas=[('.venv/Lib/site-packages/PySide6', 'PySide6')],
+    hiddenimports=['PySide6.QtCore', 'PySide6.QtGui', 'PySide6.QtWidgets', 'PySide6.QtNetwork', 'PySide6.QtPrintSupport'],
     hookspath=[],
     runtime_hooks=[],
     excludes=[],
@@ -39,5 +39,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='Hex2DecQt',
+    name='Hex2Dec',
 )
