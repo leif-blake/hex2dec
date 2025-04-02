@@ -1,8 +1,7 @@
 import sys
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QPushButton, QVBoxLayout,
-                             QHBoxLayout, QWidget, QLabel, QRadioButton, QCheckBox,
+from PySide6.QtWidgets import (QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel, QRadioButton, QCheckBox,
                              QTextEdit, QGridLayout)
-from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve
+from PySide6.QtCore import Qt, QPropertyAnimation, QEasingCurve
 
 import handlers
 from settings import Settings

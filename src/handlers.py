@@ -2,7 +2,7 @@
 Functions to handle ui events
 """
 
-from PyQt6.QtWidgets import QMessageBox
+from PySide6.QtWidgets import QMessageBox
 from number_list import NumberList
 
 

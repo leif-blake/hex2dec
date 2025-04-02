@@ -4,9 +4,9 @@ Entry point for the number converter application
 
 import sys
 
-from PyQt6 import QtCore
-from PyQt6.QtWidgets import QApplication
-from PyQt6.QtGui import QIcon
+from PySide6 import QtCore
+from PySide6.QtWidgets import QApplication
+from PySide6.QtGui import QIcon
 
 from ui import Hex2DecQt
 

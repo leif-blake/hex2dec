@@ -2,7 +2,7 @@
 Class file to store list of numbers and their positions in a text string
 """
 
-from PyQt6.QtWidgets import QMessageBox
+from PySide6.QtWidgets import QMessageBox
 
 from universal_format import UniversalFormat
 
