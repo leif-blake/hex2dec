@@ -12,7 +12,7 @@ from ui import Hex2DecQt
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = Hex2DecQt(version="0.1.1")
+    window = Hex2DecQt(version="0.2.0")
     # set app icon
     app_icon = QIcon()
     app_icon.addFile('res/icon16x16.png', QtCore.QSize(16, 16))
