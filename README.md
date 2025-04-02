@@ -3,7 +3,7 @@ This is a simple GUI for converting numbers between decimal, binary, and hexadec
 # Building
 
 Folder structure prerequisites:
-- .venv with pyqt6 and numpy in top level of project folder
+- .venv with PysSide6 and numpy in top level of project folder
 
 In a terminal, run
 
