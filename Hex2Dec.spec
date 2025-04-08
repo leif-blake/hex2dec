@@ -6,8 +6,11 @@ a = Analysis(
     ['src/main.py'],
     pathex=['.'],
     binaries=[],
-    datas=[('.venv/Lib/site-packages/PySide6', 'PySide6')],
-    hiddenimports=['PySide6.QtCore', 'PySide6.QtGui', 'PySide6.QtWidgets', 'PySide6.QtNetwork', 'PySide6.QtPrintSupport'],
+    datas=[
+        ('.venv/Lib/site-packages/PySide6', 'PySide6'),
+        ('.venv/Lib/site-packages/shiboken6', 'shiboken6')
+    ],
+    hiddenimports=['PySide6.QtCore', 'PySide6.QtGui', 'PySide6.QtWidgets'],
     hookspath=[],
     runtime_hooks=[],
     excludes=[],
