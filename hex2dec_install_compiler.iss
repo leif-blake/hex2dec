@@ -44,6 +44,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "dist\Hex2Dec\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\Hex2Dec\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "res\*.png"; DestDir: "{app}\res"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "res\*.ico"; DestDir: "{app}\res"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "fonts\RobotoMono-VariableFont_wght.ttf"; DestDir: "{autofonts}";FontInstall: "Roboto Mono"; Flags: onlyifdoesntexist uninsremovereadonly
