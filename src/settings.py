@@ -6,7 +6,7 @@ import os
 import json
 from typing import Dict, Any
 
-settings_file = os.path.join(os.path.dirname(__file__), 'settings.json')
+settings_file = os.path.join(os.getenv('LOCALAPPDATA'), 'Programs', 'Hex2Dec', 'settings.json')
 
 factory_settings = {
     "showQuickOptions": True,
@@ -29,6 +29,7 @@ class Settings:
 
     def __init__(self):
         self.settings_file = settings_file
+        os.makedirs(os.path.dirname(self.settings_file), exist_ok=True)
         self.json_settings = {}
         self.load_settings()
 

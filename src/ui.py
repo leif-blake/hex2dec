@@ -121,7 +121,7 @@ class Hex2DecQt(QMainWindow):
         # Hex section
         hex_label = QLabel("Hexadecimal")
         self.hex_text = QTextEdit()
-        self.hex_text.setStyleSheet("font-family: 'Roboto Mono'; font-weight: 400; font-size: 10pt; -webkit-font-smoothing: antialiased;")
+        self.hex_text.setStyleSheet("font-family: 'Roboto Mono', 'Courier New', monospace; font-weight: 400; font-size: 10pt;")
         self.hex_text.installEventFilter(self)
         self.hex_button = QPushButton("Convert Hex")
         self.hex_button.clicked.connect(self.convert_hex)
@@ -129,7 +129,7 @@ class Hex2DecQt(QMainWindow):
         # Dec section
         dec_label = QLabel("Decimal")
         self.dec_text = QTextEdit()
-        self.dec_text.setStyleSheet("font-family: 'Roboto Mono'; font-weight: 400; font-size: 10pt; -webkit-font-smoothing: antialiased;")
+        self.dec_text.setStyleSheet("font-family: 'Roboto Mono', 'Courier New', monospace; font-weight: 400; font-size: 10pt;")
         self.dec_text.installEventFilter(self)
         self.dec_button = QPushButton("Convert Decimal")
         self.dec_button.clicked.connect(self.convert_dec)
@@ -137,7 +137,7 @@ class Hex2DecQt(QMainWindow):
         # Bin section
         bin_label = QLabel("Binary")
         self.bin_text = QTextEdit()
-        self.bin_text.setStyleSheet("font-family: 'Roboto Mono'; font-weight: 400; font-size: 10pt; -webkit-font-smoothing: antialiased;")
+        self.bin_text.setStyleSheet("font-family: 'Roboto Mono', 'Courier New', monospace; font-weight: 400; font-size: 10pt;")
         self.bin_text.installEventFilter(self)
         self.bin_button = QPushButton("Convert Binary")
         self.bin_button.clicked.connect(self.convert_bin)

@@ -14,9 +14,8 @@ AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
-DefaultDirName={autopf}\{#MyAppName}
+DefaultDirName={code:GetDefaultDir}\{#MyAppName}
 DisableProgramGroupPage=yes
-; Remove the following line to run in administrative install mode (install for all users.)
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 OutputBaseFilename=Hex2Dec_Installer_{#MyAppVersion}
@@ -25,6 +24,16 @@ SolidCompression=yes
 WizardStyle=modern
 OutputDir=out
 SetupIconFile=res\icon.ico
+DisableDirPage=no
+
+[Code]
+function GetDefaultDir(Value: string): string;
+begin
+  if IsAdminInstallMode then
+    Result := ExpandConstant('{pf}')
+  else
+    Result := ExpandConstant('{localappdata}\Programs');
+end;
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -35,7 +44,10 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "dist\Hex2Dec\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\Hex2Dec\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "res\*"; DestDir: "{app}\res"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "res\*.png"; DestDir: "{app}\res"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "res\*.ico"; DestDir: "{app}\res"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "fonts\RobotoMono-VariableFont_wght.ttf"; DestDir: "{autofonts}";FontInstall: "Roboto Mono"; Flags: onlyifdoesntexist uninsremovereadonly
+
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
@@ -44,4 +56,107 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+
+; [UninstallDelete]
+; Type: files; Name: "{localappdata}\Programs\Hex2Dec\settings.json"
+; Type: files; Name: "{localappdata}\Programs\Hex2Dec\_internal\settings.json"
+; Type: dirifempty; Name: "{localappdata}\Programs\Hex2Dec"
+; Type: dirifempty; Name: "{localappdata}\Programs"
+
+[Code]
+// Helper function to check if directory is empty
+function isEmptyDir(dirName: String): Boolean;
+var
+  FindRec: TFindRec;
+  FileCount: Integer;
+begin
+  Result := False;
+  if FindFirst(dirName+'\*', FindRec) then begin
+    try
+      repeat
+        if (FindRec.Name <> '.') and (FindRec.Name <> '..') then begin
+          FileCount := 1;
+          break;
+        end;
+      until not FindNext(FindRec);
+    finally
+      FindClose(FindRec);
+      if FileCount = 0 then Result := True;
+    end;
+  end;
+end;
+
+procedure DeleteAllUserSettings();
+var
+  Names: TArrayOfString;
+  I, Count: Integer;
+  ProfilePath, LocalAppDataPath, Hex2DecDir, SettingsFile: string;
+begin
+  // Get list of all user profiles from registry
+  if RegGetSubkeyNames(HKEY_LOCAL_MACHINE, 'SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList', Names) then
+  begin
+    Count := GetArrayLength(Names);
+    for I := 0 to Count - 1 do
+    begin
+      if RegQueryStringValue(HKEY_LOCAL_MACHINE,
+                           'SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList\' + Names[I],
+                           'ProfileImagePath',
+                           ProfilePath) then
+      begin
+        LocalAppDataPath := ProfilePath + '\AppData\Local\Programs';
+        Hex2DecDir := LocalAppDataPath + '\Hex2Dec';
+        SettingsFile := Hex2DecDir + '\settings.json';
+
+        // Delete settings.json if it exists
+        if FileExists(SettingsFile) then
+          DeleteFile(SettingsFile);
+
+        // Remove Hex2Dec dir if empty
+        if DirExists(Hex2DecDir) and isEmptyDir(Hex2DecDir) then
+          RemoveDir(Hex2DecDir);
+
+        // Remove Programs dir if empty
+        if DirExists(LocalAppDataPath) and isEmptyDir(LocalAppDataPath) then
+          RemoveDir(LocalAppDataPath);
+      end;
+    end;
+  end;
+end;
+
+procedure DeleteUserSettings();
+var
+  BasePath, SettingsFile, Hex2DecDir: string;
+begin
+  BasePath := ExpandConstant('{localappdata}\Programs');
+  Hex2DecDir := BasePath + '\Hex2Dec';
+  SettingsFile := Hex2DecDir + '\settings.json';
+
+  // Delete settings.json
+  if FileExists(SettingsFile) then begin
+    DeleteFile(SettingsFile);
+  end;
+
+  // Remove Hex2Dec dir if empty
+  if DirExists(Hex2DecDir) and isEmptyDir(Hex2DecDir) then begin
+    RemoveDir(Hex2DecDir);
+  end;
+
+  // Remove Programs dir if empty
+  if DirExists(BasePath) and isEmptyDir(BasePath) then begin
+    RemoveDir(BasePath);
+  end;
+end;
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+begin
+  if CurUninstallStep = usUninstall then begin
+    if IsAdmin then begin
+      // Admin install → clean settings for all users
+      DeleteAllUserSettings();
+    end else begin
+      // Per-user install → clean only current user's settings
+      DeleteUserSettings();
+    end;
+  end;
+end;
 
