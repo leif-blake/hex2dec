@@ -1,10 +1,14 @@
-import sys
-from PySide6.QtWidgets import (QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel, QRadioButton, QCheckBox,
-                             QTextEdit, QGridLayout)
-from PySide6.QtCore import Qt, QPropertyAnimation, QEasingCurve
+"""
+Hex2Dec Converter - PySide6 GUI
+"""
 
-import handlers
+from PySide6.QtWidgets import (QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel, QRadioButton, QCheckBox,
+                             QTextEdit, QGridLayout, QMessageBox)
+from PySide6.QtCore import Qt, QPropertyAnimation, QEasingCurve
+from PySide6 import QtGui
+
 from settings import Settings
+from number_list import NumberList
 
 
 class Hex2DecQt(QMainWindow):
@@ -191,7 +195,6 @@ class Hex2DecQt(QMainWindow):
         settings.set_setting(['screenSize', 'width'], self.width())
         settings.set_setting(['screenSize', 'height'], self.height())
 
-
     def toggle_options(self):
         if not self.options_visible:
             # Show options
@@ -216,53 +219,47 @@ class Hex2DecQt(QMainWindow):
         self.options_visible = not self.options_visible
 
     def convert_hex(self):
-        hex_result, dec_result, bin_result = handlers.hex_to_other(
+        if self.convert_string(
             self.hex_text.toPlainText(),
+            "hex",
             self.pad_check.isChecked(),
             self.prefix_check.isChecked(),
             self.endian_check.isChecked(),
             self.unsigned_radio.isChecked(),
             self.signed_radio.isChecked(),
             self.float_radio.isChecked()
-        )
-        if hex_result is not None and bin_result is not None and dec_result is not None:
-            self.hex_text.setPlainText(hex_result)
+        ):
+            # Only push state if conversion is successful
             self.hex_text.moveCursor(self.hex_text.textCursor().MoveOperation.End)
-            self.dec_text.setPlainText(dec_result)
-            self.bin_text.setPlainText(bin_result)
             self.push_state()
 
     def convert_dec(self):
-        hex_result, dec_result, bin_result = handlers.dec_to_other(
+        if self.convert_string(
             self.dec_text.toPlainText(),
+            "dec",
             self.pad_check.isChecked(),
             self.prefix_check.isChecked(),
             self.endian_check.isChecked(),
             self.unsigned_radio.isChecked(),
             self.signed_radio.isChecked(),
             self.float_radio.isChecked()
-        )
-        if hex_result is not None and bin_result is not None and dec_result is not None:
-            self.hex_text.setPlainText(hex_result)
-            self.dec_text.setPlainText(dec_result)
+        ):
+            # Only push state if conversion is successful
             self.dec_text.moveCursor(self.dec_text.textCursor().MoveOperation.End)
-            self.bin_text.setPlainText(bin_result)
             self.push_state()
 
     def convert_bin(self):
-        hex_result, dec_result, bin_result  = handlers.bin_to_other(
+        if self.convert_string(
             self.bin_text.toPlainText(),
+            "bin",
             self.pad_check.isChecked(),
             self.prefix_check.isChecked(),
             self.endian_check.isChecked(),
             self.unsigned_radio.isChecked(),
             self.signed_radio.isChecked(),
             self.float_radio.isChecked()
-        )
-        if hex_result is not None and bin_result is not None and dec_result is not None:
-            self.hex_text.setPlainText(hex_result)
-            self.dec_text.setPlainText(dec_result)
-            self.bin_text.setPlainText(bin_result)
+        ):
+            # Only push state if conversion is successful
             self.bin_text.moveCursor(self.bin_text.textCursor().MoveOperation.End)
             self.push_state()
 
@@ -413,4 +410,69 @@ class Hex2DecQt(QMainWindow):
 
         self.settings.save_settings()
         super().closeEvent(event)
+
+    def convert_string(self, input_string, input_format, pad=False, show_prefix=False, little_endian=False,
+                       is_unsigned=True, is_signed=False, is_float=False):
+        """Convert input string to other formats based on input format"""
+        # Determine number type
+        if is_unsigned:
+            number_type = "unsigned"
+        elif is_signed:
+            number_type = "signed"
+        elif is_float:
+            number_type = "floating"
+        else:
+            number_type = "unsigned"  # default
+
+        # Create a NumberList object to handle the conversion
+        number_list = NumberList()
+
+        try:
+            if little_endian:
+                number_list.parse_numbers(input_string, input_format, number_type, endianness='little')
+            else:
+                number_list.parse_numbers(input_string, input_format, number_type, endianness='big')
+
+            hex_result, hex_positions, hex_lengths, hex_errors = number_list.to_hex_string(pad=pad, show_0x=show_prefix)
+            dec_result, dec_positions, dec_lengths, dec_errors = number_list.to_dec_string()
+            bin_result, bin_positions, bin_lengths, bin_errors = number_list.to_bin_string(pad=pad, show_0b=show_prefix)
+        except ValueError as error:
+            QMessageBox.critical(None, "Conversion Error",
+                                 f"Invalid Value\n{error}")
+            return False
+
+        self.hex_text.setPlainText(hex_result)
+        self.dec_text.setPlainText(dec_result)
+        self.bin_text.setPlainText(bin_result)
+
+        # Highlight errors in the text edits
+        self.highlight_errors(self.hex_text, hex_positions, hex_lengths, hex_errors)
+        self.highlight_errors(self.dec_text, dec_positions, dec_lengths, dec_errors)
+        self.highlight_errors(self.bin_text, bin_positions, bin_lengths, bin_errors)
+
+        return True
+
+    def highlight_errors(self, text_edit, positions, lengths, errors):
+        """
+        Highlight errors in the text edit widget.
+        :param text_edit: The QTextEdit widget to highlight errors in.
+        :param positions: List of start positions of the numbers.
+        :param lengths: List of lengths of the numbers.
+        :param errors: List of errors for each number.
+        """
+        cursor = text_edit.textCursor()
+        cursor.select(cursor.SelectionType.Document)
+        cursor.setCharFormat(cursor.charFormat())
+        text_edit.setTextCursor(cursor)
+
+        # Set highlight format
+        fmt = QtGui.QTextCharFormat()
+        fmt.setBackground(Qt.GlobalColor.red)
+        fmt.setForeground(Qt.GlobalColor.white)
+
+        for pos, length, error in zip(positions, lengths, errors):
+            if error:
+                cursor.setPosition(pos)
+                cursor.movePosition(cursor.MoveOperation.Right, cursor.MoveMode.KeepAnchor, length)
+                cursor.mergeCharFormat(fmt)
 

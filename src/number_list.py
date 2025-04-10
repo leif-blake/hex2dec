@@ -16,7 +16,11 @@ class NumberList:
         """
         self.input_string = ""
         self.numbers = []
+        self.errors = []
         self.positions = []
+        self.hex_lengths = []
+        self.dec_lengths = []
+        self.bin_lengths = []
         self.input_number_lengths = []
 
     def parse_numbers(self, text_string, number_format, value_type, endianness='big'):
@@ -32,6 +36,7 @@ class NumberList:
 
         numbers = []
         positions = []
+        errors = []
         input_number_lengths = []
 
         delimiters = [' ', ',', '\n', '\r', '\t', ';', ':', '[', ']', '{', '}', '(', ')']
@@ -103,20 +108,37 @@ class NumberList:
                     else:
                         uf.from_dec_string(word)
 
+                # If success, store the number and set error to None
                 numbers.append(uf)
-                positions.append(word_pos)
-                input_number_lengths.append(len(word))
+                errors.append(None)
 
             except ValueError as error:
+                # If error occurs, store number as None and the error message
+                numbers.append(None)
+                errors.append(error)
                 QMessageBox.critical(None, "Conversion Error",
                                      f"Invalid Value: {word}\n{error}")
 
+            # Store the length and position of the number
+            positions.append(word_pos)
+            input_number_lengths.append(len(word))
             # Update position for next word
             word_pos += len(word) + 1  # +1 for space
 
         self.numbers = numbers
         self.positions = positions
+        self.errors = errors
         self.input_number_lengths = input_number_lengths
+
+        # Initialize lengths for hex, dec, and bin to the input lengths
+        self.hex_lengths = input_number_lengths.copy()
+        self.dec_lengths = input_number_lengths.copy()
+        self.bin_lengths = input_number_lengths.copy()
+
+        # Initialize positions for hex, dec, and bin to the input positions
+        self.hex_positions = positions.copy()
+        self.dec_positions = positions.copy()
+        self.bin_positions = positions.copy()
 
     def to_hex_string(self, pad=False, show_0x=False):
         """
@@ -137,14 +159,21 @@ class NumberList:
 
         # Process numbers in reverse order to avoid position shifts
         for i in range(len(self.numbers) - 1, -1, -1):
+            if self.numbers[i] is None:
+                # Skip None values
+                continue
             hex_str = self.numbers[i].to_hex_string(pad=pad, show_0x=show_0x)
             pos = self.positions[i]
-            length = self.input_number_lengths[i]
+            input_length = self.input_number_lengths[i]
+
+            # If no error, set the hex length
+            if self.errors[i] is None:
+                self.hex_lengths[i] = len(hex_str)
 
             # Replace the original number with the hex string
-            result = result[:pos] + hex_str + result[pos + length:]
+            result = result[:pos] + hex_str + result[pos + input_length:]
 
-        return result
+        return result, self.positions, self.hex_lengths, self.errors
 
     def to_dec_string(self):
         """
@@ -163,14 +192,21 @@ class NumberList:
 
         # Process numbers in reverse order to avoid position shifts
         for i in range(len(self.numbers) - 1, -1, -1):
+            if self.numbers[i] is None:
+                # Skip None values
+                continue
             dec_str = self.numbers[i].to_dec_string()
             pos = self.positions[i]
-            length = self.input_number_lengths[i]
+            input_length = self.input_number_lengths[i]
+
+            # If no error, set the decimal length
+            if self.errors[i] is None:
+                self.dec_lengths[i] = len(dec_str)
 
             # Replace the original number with the decimal string
-            result = result[:pos] + dec_str + result[pos + length:]
+            result = result[:pos] + dec_str + result[pos + input_length:]
 
-        return result
+        return result, self.positions, self.dec_lengths, self.errors
 
     def to_bin_string(self, pad=False, show_0b=False):
         """
@@ -190,11 +226,18 @@ class NumberList:
 
         # Process numbers in reverse order to avoid position shifts
         for i in range(len(self.numbers) - 1, -1, -1):
+            if self.numbers[i] is None:
+                # Skip None values
+                continue
             bin_str = self.numbers[i].to_bin_string(pad=pad, show_0b=show_0b)
             pos = self.positions[i]
-            length = self.input_number_lengths[i]
+            input_length = self.input_number_lengths[i]
+
+            # If no error, set the binary length
+            if self.errors[i] is None:
+                self.bin_lengths[i] = len(bin_str)
 
             # Replace the original number with the binary string
-            result = result[:pos] + bin_str + result[pos + length:]
+            result = result[:pos] + bin_str + result[pos + input_length:]
 
-        return result
+        return result, self.positions, self.bin_lengths, self.errors
